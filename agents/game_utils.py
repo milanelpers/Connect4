@@ -1,6 +1,14 @@
 import copy
 from enum import Enum
 import numpy as np
+from typing import Callable, Optional
+
+
+BOARD_COLS = 7
+BOARD_ROWS = 6
+BOARD_SHAPE = (6, 7)
+INDEX_HIGHEST_ROW = BOARD_ROWS - 1
+INDEX_LOWEST_ROW = 0
 
 BoardPiece = np.int8  # The data type (dtype) of the board
 NO_PLAYER = BoardPiece(0)  # board[i, j] == NO_PLAYER where the position is empty
@@ -21,11 +29,21 @@ class GameState(Enum):
     STILL_PLAYING = 0
 
 
+class SavedState:
+    pass
+
+
+GenMove = Callable[
+    [np.ndarray, BoardPiece, Optional[SavedState]],  # Arguments for the generate_move function
+    tuple[PlayerAction, Optional[SavedState]]  # Return type of the generate_move function
+]
+
+
 def initialize_game_state() -> np.ndarray:
     """
     Returns an ndarray, shape (6, 7) and data type (dtype) BoardPiece, initialized to 0 (NO_PLAYER).
     """
-    return np.full((6, 7),NO_PLAYER,dtype=BoardPiece)
+    return np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
 
 
 def pretty_print_board(board: np.ndarray) -> str:

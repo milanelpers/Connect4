@@ -1,1 +1,1 @@
-from game_utils import *
+from agents.game_utils import *
