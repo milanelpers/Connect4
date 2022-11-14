@@ -62,23 +62,23 @@ def pretty_print_board(board: np.ndarray) -> str:
     |==============|
     |0 1 2 3 4 5 6 |
     """
-    a = '\n|===============|'
+    string = '\n|===============|'
     for i in range(5, -1, -1):
-        a += '\n|'
+        string += '\n|'
         for j in range(7):
-            if (board[i][j] == PLAYER1):
-                a += ' '
-                a += PLAYER1_PRINT
-            elif (board[i][j] == PLAYER2):
-                a += ' '
-                a += PLAYER2_PRINT
+            if board[i][j] == PLAYER1:
+                string += ' '
+                string += PLAYER1_PRINT
+            elif board[i][j] == PLAYER2:
+                string += ' '
+                string += PLAYER2_PRINT
             else:
-                a += ' '
-                a += NO_PLAYER_PRINT
-        a += ' |'
-    a += '\n|===============|'
-    a += '\n| 0 1 2 3 4 5 6 |'
-    return a
+                string += ' '
+                string += NO_PLAYER_PRINT
+        string += ' |'
+    string += '\n|===============|'
+    string += '\n| 0 1 2 3 4 5 6 |'
+    return string
 
 
 def string_to_board(pp_board: str) -> np.ndarray:
@@ -87,25 +87,26 @@ def string_to_board(pp_board: str) -> np.ndarray:
     This is quite useful for debugging, when the agent crashed and you have the last
     board state as a string.
     """
-    a = pp_board
-    a = a.replace('=', '')
-    a = a.replace('|', '')
-    a = a.replace(' ', '')
-    a = a[:len(a) - 7]
+    string = pp_board
+    string = string.replace('=', '')
+    string = string.replace('|', '')
+    string = string.replace(' ', '')
+    string = string[:len(string) - 7]
 
-    split = a.split('\n')
+    split = string.split('\n')
     string = split[2:8]
     board = np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
     for i in range(5, -1, -1):
         count = 0
         for j in string[i]:
-            if (j == PLAYER1_PRINT):
+            if j == PLAYER1_PRINT:
                 board[5 - i][count] = PLAYER1
-            elif (j == PLAYER2_PRINT):
+            elif j == PLAYER2_PRINT:
                 board[5 - i][count] = PLAYER2
             count += 1
 
     return board
+
 
 def apply_player_action(board: np.ndarray, action: PlayerAction, player: BoardPiece) -> np.ndarray:
     """
@@ -114,13 +115,15 @@ def apply_player_action(board: np.ndarray, action: PlayerAction, player: BoardPi
     board is returned and the original board should remain unchanged (i.e., either set
     back or copied beforehand).
     """
-    #create a real copy so board does not get changed
-    newboard= copy.deepcopy(board)
+
+    # create a real copy so board does not get changed
+
+    newboard = copy.deepcopy(board)
     pieceplaced = 0
-    if(0<=action<=6):
-        if(board[5][action] == NO_PLAYER):
+    if 0 <= action <= 6:
+        if board[5][action] == NO_PLAYER:
             for i in range(6):
-                if (board[i][action] == NO_PLAYER and pieceplaced == 0):
+                if board[i][action] == NO_PLAYER and pieceplaced == 0:
                     newboard[i][action] = player
                     pieceplaced = 1
         else:
@@ -129,44 +132,48 @@ def apply_player_action(board: np.ndarray, action: PlayerAction, player: BoardPi
         raise ValueError('Must be a number from 0 to 6')
     return newboard
 
+
 def connected_four(board: np.ndarray, player: BoardPiece) -> bool:
     """
     Returns True if there are four adjacent pieces equal to `player` arranged
     in either a horizontal, vertical, or diagonal line. Returns False otherwise.
     """
-    #rows = 6 columns = 7
 
-    #check horizontally for win
+    # rows = 6 columns = 7
+
+    # check horizontally for win
     for c in range(4):
         for r in range(6):
-            if (board[r][c]==player and board[r][c+1]==player and board[r][c+2]==player and board[r][c+3]==player):
+            if board[r][c]==player and board[r][c+1]==player and board[r][c+2]==player and board[r][c+3]==player:
                 return True
 
-    #check vertically for win
+    # check vertically for win
     for c in range(7):
         for r in range(3):
-            if (board[r][c]==player and board[r+1][c]==player and board[r+2][c]==player and board[r+3][c]==player):
+            if board[r][c]==player and board[r+1][c]==player and board[r+2][c]==player and board[r+3][c]==player:
                 return True
 
-    #check for diagonals going right
+    # check for diagonals going right
     for c in range(4):
         for r in range(3):
-            if (board[r][c]==player and board[r+1][c+1]==player and board[r+2][c+2]==player and board[r+3][c+3]==player):
+            if board[r][c]==player and board[r+1][c+1]==player and board[r+2][c+2]==player and board[r+3][c+3]==player:
                 return True
 
-    #check for diagonals going left
+    # check for diagonals going left
     for c in range(4):
-        for r in range(3,6):
-            if (board[r][c]==player and board[r-1][c+1]==player and board[r-2][c+2]==player and board[r-3][c+3]==player):
+        for r in range(3, 6):
+            if board[r][c]==player and board[r-1][c+1]==player and board[r-2][c+2]==player and board[r-3][c+3]==player:
                 return True
     return False
+
+
 def check_end_state(board: np.ndarray, player: BoardPiece) -> GameState:
     """
     Returns the current game state for the current `player`, i.e. has their last
     action won (GameState.IS_WIN) or drawn (GameState.IS_DRAW) the game,
     or is play still on-going (GameState.STILL_PLAYING)?
     """
-    if(connected_four(board,player)==True):
+    if connected_four(board, player):
         return GameState.IS_WIN
     elif(board[5][0]!=NO_PLAYER and board[5][1]!=NO_PLAYER and board[5][2]!=NO_PLAYER and board[5][3]!=NO_PLAYER
         and board[5][4]!=NO_PLAYER and board[5][5]!=NO_PLAYER and board[5][6]!=NO_PLAYER):
