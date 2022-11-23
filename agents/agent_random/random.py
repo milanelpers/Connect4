@@ -2,7 +2,9 @@ import random
 
 from agents.game_utils import *
 
-
+"""
+A random action from all possible ones is returned.
+"""
 def generate_move_random(
     board: np.ndarray, player: BoardPiece, saved_state: Optional[SavedState]
 ) -> tuple[PlayerAction, Optional[SavedState]]:

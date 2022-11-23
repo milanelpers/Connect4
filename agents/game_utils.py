@@ -93,10 +93,12 @@ def string_to_board(pp_board: str) -> np.ndarray:
     string = string.replace(' ', '')
     string = string[:len(string) - 7]
 
-    # split string into it lines
+    # split string by lines
     split = string.split('\n')
     string = split[2:8]
     board = np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
+
+    # Go through string backwards because it's flipped
     for i in range(5, -1, -1):
         count = 0
         for j in string[i]:
@@ -131,6 +133,11 @@ def apply_player_action(board: np.ndarray, action: PlayerAction, player: BoardPi
     else:
         raise ValueError('Must be a number from 0 to 6')
     return new_board
+
+
+"""
+Was supposed to be run with numba for faster calculations, but had problems with that
+"""
 
 
 def connected_four(board: np.ndarray, player: BoardPiece) -> bool:
