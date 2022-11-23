@@ -24,10 +24,12 @@ def test_is_leaf_node():
     assert type(is_leaf_node(board)) == bool
     assert is_leaf_node(board) is True
 
+
 def test_calculate_area():
     area = [PLAYER1,PLAYER2,PLAYER1,PLAYER2,NO_PLAYER]
 
     assert -1000 <= calculate_area(area,PLAYER1) <= 200
+
 
 def test_calculate_heuristic():
     board = np.full((6, 7), PLAYER1, dtype=BoardPiece)

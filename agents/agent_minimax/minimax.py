@@ -22,7 +22,7 @@ also the special None type when Minimax is over
 """
 
 
-def minimax(board: np.ndarray, depth:int, alpha: int,
+def minimax(board: np.ndarray, depth: int, alpha: int,
             beta: int, player: BoardPiece, is_maximizing_player: bool) -> tuple[Union[int, None], int]:
     possible_columns = possible_locations(board)
     is_leaf = is_leaf_node(board)
@@ -121,7 +121,8 @@ Check if the minimax algorithm can't calculate any further because game is over.
 
 
 def is_leaf_node(board: np.ndarray):
-    return connected_four(board,PLAYER1) or connected_four(board,PLAYER2) or len(possible_locations(board)) == 0
+    return connected_four(board, PLAYER1) or connected_four(board, PLAYER2) \
+           or len(possible_locations(board)) == 0
 
 
 """
@@ -129,7 +130,7 @@ Approximate a value for the list by counting own pieces and assigning values to 
 """
 
 
-def calculate_area(area: list, player: BoardPiece ):
+def calculate_area(area: list, player: BoardPiece):
     value = 0
 
     # make sure to calculate for the right player
@@ -159,7 +160,7 @@ Area = one horizontal/vertical/diagonal cut of the board
 """
 
 
-def calculate_heuristic(board:np.ndarray, player: BoardPiece) -> int:
+def calculate_heuristic(board: np.ndarray, player: BoardPiece) -> int:
     heuristic = 0
 
     # calculate heuristic by going through rows
