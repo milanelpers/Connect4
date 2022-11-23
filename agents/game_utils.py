@@ -93,6 +93,7 @@ def string_to_board(pp_board: str) -> np.ndarray:
     string = string.replace(' ', '')
     string = string[:len(string) - 7]
 
+    # split string into it lines
     split = string.split('\n')
     string = split[2:8]
     board = np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
@@ -117,26 +118,26 @@ def apply_player_action(board: np.ndarray, action: PlayerAction, player: BoardPi
     """
 
     # create a real copy so board does not get changed
-
-    newboard = copy.deepcopy(board)
-    pieceplaced = 0
+    new_board = copy.deepcopy(board)
+    piece_placed = 0
     if 0 <= action <= 6:
         if board[5][action] == NO_PLAYER:
             for i in range(6):
-                if board[i][action] == NO_PLAYER and pieceplaced == 0:
-                    newboard[i][action] = player
-                    pieceplaced = 1
+                if board[i][action] == NO_PLAYER and piece_placed == 0:
+                    new_board[i][action] = player
+                    piece_placed = 1
         else:
             raise ValueError('This column is full you cannot play here!')
     else:
         raise ValueError('Must be a number from 0 to 6')
-    return newboard
+    return new_board
 
 
 def connected_four(board: np.ndarray, player: BoardPiece) -> bool:
     """
     Returns True if there are four adjacent pieces equal to `player` arranged
     in either a horizontal, vertical, or diagonal line. Returns False otherwise.
+
     """
 
     # rows = 6 columns = 7
@@ -144,25 +145,29 @@ def connected_four(board: np.ndarray, player: BoardPiece) -> bool:
     # check horizontally for win
     for c in range(4):
         for r in range(6):
-            if board[r][c]==player and board[r][c+1]==player and board[r][c+2]==player and board[r][c+3]==player:
+            if board[r][c] == player and board[r][c+1] == player \
+                    and board[r][c+2] == player and board[r][c+3] == player:
                 return True
 
     # check vertically for win
     for c in range(7):
         for r in range(3):
-            if board[r][c]==player and board[r+1][c]==player and board[r+2][c]==player and board[r+3][c]==player:
+            if board[r][c] == player and board[r+1][c] == player \
+                    and board[r+2][c] == player and board[r+3][c] == player:
                 return True
 
     # check for diagonals going right
     for c in range(4):
         for r in range(3):
-            if board[r][c]==player and board[r+1][c+1]==player and board[r+2][c+2]==player and board[r+3][c+3]==player:
+            if board[r][c] == player and board[r+1][c+1] == player \
+                    and board[r+2][c+2] == player and board[r+3][c+3] == player:
                 return True
 
     # check for diagonals going left
     for c in range(4):
         for r in range(3, 6):
-            if board[r][c]==player and board[r-1][c+1]==player and board[r-2][c+2]==player and board[r-3][c+3]==player:
+            if board[r][c] == player and board[r-1][c+1] == player \
+                    and board[r-2][c+2] == player and board[r-3][c+3] == player:
                 return True
     return False
 
@@ -175,8 +180,10 @@ def check_end_state(board: np.ndarray, player: BoardPiece) -> GameState:
     """
     if connected_four(board, player):
         return GameState.IS_WIN
-    elif(board[5][0]!=NO_PLAYER and board[5][1]!=NO_PLAYER and board[5][2]!=NO_PLAYER and board[5][3]!=NO_PLAYER
-        and board[5][4]!=NO_PLAYER and board[5][5]!=NO_PLAYER and board[5][6]!=NO_PLAYER):
+    elif(board[5][0] != NO_PLAYER and board[5][1] != NO_PLAYER and
+         board[5][2] != NO_PLAYER and board[5][3] != NO_PLAYER and
+         board[5][4] != NO_PLAYER and board[5][5] != NO_PLAYER and
+         board[5][6] != NO_PLAYER):
         return GameState.IS_DRAW
     else:
         return GameState.STILL_PLAYING
