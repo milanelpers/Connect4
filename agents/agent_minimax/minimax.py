@@ -65,7 +65,8 @@ def minimax(board: np.ndarray, depth:int, alpha: int,
                 player_action = i
 
             alpha = max(alpha, value)
-            if alpha >= beta:
+            # If value is bigger than beta -> beta cutoff, no need to look further down
+            if value >= beta:
                 break
 
         return player_action, value
@@ -93,7 +94,8 @@ def minimax(board: np.ndarray, depth:int, alpha: int,
                 player_action = i
 
             beta = min(beta, value)
-            if alpha >= beta:
+            # If alpha is bigger than value -> alpha cutoff, no need to look further down
+            if alpha >= value:
                 break
 
         return player_action, value
@@ -151,7 +153,7 @@ def calculate_area(area: list, player: BoardPiece ):
 
 
 """
-To improve runtime and code readability split calculations into areas to independently asses areas.
+To improve runtime and code readability split calculations into areas to independently asses them.
 
 Area = one horizontal/vertical/diagonal cut of the board
 """
