@@ -5,9 +5,10 @@ import numpy as np
 
 
 def test_minimax():
-    board1 = 0b0000000_0000000_0000000_0000000_0000010_0001110_0000001
+    board1 = 0b0000000_0000000_0000000_0000000_0000010_0001110_0000111
     board2 = 0b0000000_0000000_0000000_0000000_0000000_0000000_0000000
     board = (board1,board2)
+    print(type(count_three(board,PLAYER1)))
     count = count_three(board, PLAYER1)
     print(int.bit_count(count))
 

@@ -26,7 +26,6 @@ def human_vs_agent(
 
         saved_state = {PLAYER1: None, PLAYER2: None}
         board = initialize_game_state()
-        boardcopy = (board[0], board[1])
         gen_moves = (generate_move_1, generate_move_2)[::play_first]
         player_names = (player_1, player_2)[::play_first]
         gen_args = (args_1, args_2)[::play_first]

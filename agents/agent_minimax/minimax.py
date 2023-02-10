@@ -32,7 +32,7 @@ def generate_move_minimax(
         board = map_board_to_player_one(board)
         player = PLAYER1
 
-    depth = 4
+    depth = 5
 
     best_action = 0
     best_evaluation = -999999
@@ -97,8 +97,8 @@ def heuristic(board: tuple) -> int:
         return 100
     if connected_four(board, PLAYER2):
         return -100
-    a = count_three(board, PLAYER1) + count_two(board, PLAYER1) + count_one(board, PLAYER1)
-    b = count_three(board, PLAYER2) + count_two(board, PLAYER2) + count_one(board, PLAYER2)
+    a = int.bit_count(count_three(board, PLAYER1))*5 + int.bit_count(count_two(board, PLAYER1))*3 + int.bit_count(count_one(board, PLAYER1))
+    b = int.bit_count(count_three(board, PLAYER2))*5 + int.bit_count(count_two(board, PLAYER2))*3 + int.bit_count(count_one(board, PLAYER2))
     return a - b
 
 
@@ -153,8 +153,7 @@ def count_three(board: tuple, player: BoardPiece):
     # check vertical
     result |= invboard & (check << 1) & (check << 2) & (check << 3)
 
-    result = int.bit_count(result)
-    return result
+    return int(result)
 
 
 def count_two(board: tuple, player: BoardPiece):
@@ -203,8 +202,7 @@ def count_two(board: tuple, player: BoardPiece):
 
     # check vertical
     result |= invboard & (check << 1) & (check << 2)
-    result = int.bit_count(result)
-    return result
+    return int(result)
 
 
 def count_one(board: tuple, player: BoardPiece):
@@ -223,8 +221,8 @@ def count_one(board: tuple, player: BoardPiece):
 
     # check vertical
     result |= invboard & (check << 1)
-    result = int.bit_count(result)
-    return result
+
+    return int(result)
 def other_player(player: BoardPiece):
     if player == PLAYER1:
         return PLAYER2
