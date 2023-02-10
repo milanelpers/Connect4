@@ -5,10 +5,11 @@ import numpy as np
 
 
 def test_minimax():
-    board = np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
-
-    assert minimax(board, 0, -10000000, 10000000, PLAYER1, True) == (None, 0)
-
+    board1 = 0b0000000_0000000_0000000_0000000_0000010_0001110_0000001
+    board2 = 0b0000000_0000000_0000000_0000000_0000000_0000000_0000000
+    board = (board1,board2)
+    count = count_three(board, PLAYER1)
+    print(int.bit_count(count))
 
 def test_possible_locations():
     board = np.full((6, 7), NO_PLAYER, dtype=BoardPiece)

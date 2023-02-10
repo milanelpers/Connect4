@@ -1,14 +1,50 @@
 import pytest
-
 from agents.game_utils import *
 import numpy as np
 
 
 def test_ini_gamestate():
+    board1 = 0b0000000_0000000_0000000_0000000_0000010_0001100_0000001
+    board2 = 0b0000000_0000000_0000000_0000000_0000000_0000000_0000000
+    print(int.bit_count(board1))
+    boardarray = np.full((6,7), PLAYER1,dtype=BoardPiece)
+    #print(apply_player_action((board1,board2),0,PLAYER2))
+    printerino = apply_player_action((board1,board2), 0, PLAYER2)[0]
+    #print(format(int(printerino),'049b'))
+    #print(connected_four((board1,board2),PLAYER1))
+    #board = get_bitboard(boardarray)
+    #print(type(board[0]))
+    #print(format(board[0], '049b'))
+    #print(bin((string_to_board(pretty_print_board((board1, board2)))[0])))
 
-    assert type(initialize_game_state()) is np.ndarray
+    """
+    board2 = initialize_game_state()
+    b = get_bitboard(board2,PLAYER1)
+    a = get_bitboard(board, PLAYER1)
+    print(board)
+    print(a)
+    print(f"{a[0]:b}")
+    print(f"{position:b}")
+    print(b)
+    print(f"{b[1]:b}")
+    """
 
-
+def test_count3():
+    board1 = 0b0000000_0000000_0000000_0000000_0000000_0000000_0000111
+    board2 = 0b0000000_0000000_0000000_0000000_0000000_0000000_0000111
+    print(board1==board2)
+    """
+    #print(f"{board1:049d}")
+    print('\n')
+    print(format(board1, '049b'))
+    print(format(shiftboard, '049b'))
+    print('#######################################')
+    print(board1)
+    print(format(board1, '049b'))
+    print(format(board3, '049b'))
+    #
+    #assert evaluate3(board2, board1) == 2
+    """
 def test_print_pretty():
     board = np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
 

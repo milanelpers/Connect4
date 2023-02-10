@@ -2,7 +2,7 @@ from typing import Callable
 from agents.game_utils import GenMove
 from agents.agent_human_user import user_move
 from agents.agent_random import generate_move
-from agents.agent_minimax import generate_move as gen_minimax
+from agents.agent_minimax import generate_move_minimax as gen_minimax
 
 
 def human_vs_agent(
@@ -26,6 +26,7 @@ def human_vs_agent(
 
         saved_state = {PLAYER1: None, PLAYER2: None}
         board = initialize_game_state()
+        boardcopy = (board[0], board[1])
         gen_moves = (generate_move_1, generate_move_2)[::play_first]
         player_names = (player_1, player_2)[::play_first]
         gen_args = (args_1, args_2)[::play_first]
@@ -41,7 +42,7 @@ def human_vs_agent(
                     f'{player_name} you are playing with {PLAYER1_PRINT if player == PLAYER1 else PLAYER2_PRINT}'
                 )
                 action, saved_state[player] = gen_move(
-                    board.copy(), player, saved_state[player], *args
+                    board, player, saved_state[player], *args
                 )
                 print(f"Move time: {time.time() - t0:.3f}s")
                 board = apply_player_action(board, action, player)

@@ -4,7 +4,7 @@ from agents.game_utils import BoardPiece, PlayerAction, SavedState, NO_PLAYER, I
 from typing import Optional, Callable
 
 
-def user_move(board: np.ndarray,
+def user_move(board: tuple,
               _player: BoardPiece,
               saved_state: Optional[SavedState]) -> tuple[PlayerAction, SavedState]:
     is_valid_move = False
@@ -27,7 +27,7 @@ def query_user(prompt_function: Callable):
     return usr_input
 
 
-def handle_illegal_moves(board: np.ndarray, column: PlayerAction):
+def handle_illegal_moves(board: tuple, column: PlayerAction):
     try:
         column = PlayerAction(column)
     except:
@@ -37,7 +37,17 @@ def handle_illegal_moves(board: np.ndarray, column: PlayerAction):
     if not is_in_range:
         raise IndexError
 
-    is_open = board[INDEX_HIGHEST_ROW, column] == NO_PLAYER
+    mask = board[0] | board[1]
+    column0full = 0b0000000_0000000_0000000_0000000_0000000_0000000_0100000
+    column1full = 0b0000000_0000000_0000000_0000000_0000000_0100000_0000000
+    column2full = 0b0000000_0000000_0000000_0000000_0100000_0000000_0000000
+    column3full = 0b0000000_0000000_0000000_0100000_0000000_0000000_0000000
+    column4full = 0b0000000_0000000_0100000_0000000_0000000_0000000_0000000
+    column5full = 0b0000000_0100000_0000000_0000000_0000000_0000000_0000000
+    column6full = 0b0100000_0000000_0000000_0000000_0000000_0000000_0000000
+    columncheck = [column0full, column1full, column2full, column3full, column4full, column5full, column6full]
+    is_open = mask & columncheck[column] == 0
+
     if not is_open:
         raise ValueError
 

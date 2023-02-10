@@ -10,7 +10,7 @@ BOARD_SHAPE = (6, 7)
 INDEX_HIGHEST_ROW = BOARD_ROWS - 1
 INDEX_LOWEST_ROW = 0
 
-BoardPiece = np.int8  # The data type (dtype) of the board
+BoardPiece = np.int64  # The data type (dtype) of the board
 NO_PLAYER = BoardPiece(0)  # board[i, j] == NO_PLAYER where the position is empty
 PLAYER1 = BoardPiece(1)  # board[i, j] == PLAYER1 where player 1 (player to move first) has a piece
 PLAYER2 = BoardPiece(2)  # board[i, j] == PLAYER2 where player 2 (player to move second) has a piece
@@ -20,7 +20,7 @@ NO_PLAYER_PRINT = BoardPiecePrint(' ')
 PLAYER1_PRINT = BoardPiecePrint('X')
 PLAYER2_PRINT = BoardPiecePrint('O')
 
-PlayerAction = np.int8  # The column to be played
+PlayerAction = np.int64  # The column to be played
 
 
 class GameState(Enum):
@@ -39,54 +39,103 @@ GenMove = Callable[
 ]
 
 
-def initialize_game_state() -> np.ndarray:
+def initialize_game_state():
     """
-    Returns an ndarray, shape (6, 7) and data type (dtype) BoardPiece, initialized to 0 (NO_PLAYER).
+    returns a tuple of the bitboards for player1 and player2
     """
-    return np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
+    board1 = 0b0000000_0000000_0000000_0000000_0000000_0000000_0000000
+    board2 = 0b0000000_0000000_0000000_0000000_0000000_0000000_0000000
+    return board1, board2
 
 
-def pretty_print_board(board: np.ndarray) -> str:
-    """
-    Should return `board` converted to a human readable string representation,
-    to be used when playing or printing diagnostics to the console (stdout). The piece in
-    board[0, 0] should appear in the lower-left. Here's an example output, note that we use
-    PLAYER1_Print to represent PLAYER1 and PLAYER2_Print to represent PLAYER2):
-    |==============|
-    |              |
-    |              |
-    |    X X       |
-    |    O X X     |
-    |  O X O O     |
-    |  O O X X     |
-    |==============|
-    |0 1 2 3 4 5 6 |
-    """
+def get_bitboard(board: np.ndarray) -> tuple:
+    board1, board2 = '', ''
+    for j in range(6, -1, -1):
+        board1 += '0'
+        board2 += '0'
+        for i in range(0, 6):
+            board1 += ['0', '1'][board[i, j] == PLAYER1]
+            board2 += ['0', '1'][board[i, j] == PLAYER2]
+    board1 = format(int(board1, 2), '049b')
+    board2 = format(int(board2, 2), '049b')
+    return int(board1, 2), int(board2, 2)
+
+
+def connected_four(board: tuple, player: BoardPiece):
+    if player == PLAYER1:
+        position = board[0]
+    else:
+        position = board[1]
+    #Horizontal
+    check = position & (position >> 7)
+    if check & (check >> 14):
+        return True
+    #Vertical
+    check = position & (position >> 1)
+    if check & (check >> 2):
+        return True
+    #Diagonal going left
+    check = position & (position >> 6)
+    if check & (check >> 12):
+        return True
+    #Diagonal going right
+    check = position & (position >> 8)
+    if check & (check >> 16):
+        return True
+    return False
+
+
+def apply_player_action(board: tuple, action: PlayerAction, player: BoardPiece) -> tuple:
+    board1 = board[0]
+    board2 = board[1]
+    mask = board1 | board2
+    if player == PLAYER1:
+        new_mask = mask | (mask + (1 << (action*7)))
+        board1 = board2 ^ new_mask
+    else:
+        new_mask = mask | (mask + (1 << (action*7)))
+        board2 = board1 ^ new_mask
+    return board1, board2
+
+
+def pretty_print_board(board: tuple) -> str:
+    board1 = board[0]
+    board2 = board[1]
+    mask = board1 | board2
+
+    p1str = str(bin(board1))[2:]
+    maskstr = str(bin(mask))[2:]
+    p2str = str(bin(board2))[2:]
+
+    if len(p1str) < 49:
+        for i in range(49-len(p1str)):
+            p1str = '0' + p1str
+    if len(maskstr) < 49:
+        for i in range(49-len(maskstr)):
+            maskstr = '0' + maskstr
+    if len(p2str) < 49:
+        for i in range(49-len(p2str)):
+            p2str = '0' + p2str
     string = '\n|===============|'
-    for i in range(5, -1, -1):
+    for j in range(6):
         string += '\n|'
-        for j in range(7):
-            if board[i][j] == PLAYER1:
+        for i in range(j+43,0,-7):
+            if maskstr[i] == '0':
+                string += ' '
+                string += '-'
+            elif maskstr[i]=='1' and p1str[i]=='1':
                 string += ' '
                 string += PLAYER1_PRINT
-            elif board[i][j] == PLAYER2:
+            elif maskstr[i]=='1' and p2str[i]=='1':
                 string += ' '
                 string += PLAYER2_PRINT
-            else:
-                string += ' '
-                string += NO_PLAYER_PRINT
         string += ' |'
     string += '\n|===============|'
     string += '\n| 0 1 2 3 4 5 6 |'
     return string
 
 
-def string_to_board(pp_board: str) -> np.ndarray:
-    """
-    Takes the output of pretty_print_board and turns it back into an ndarray.
-    This is quite useful for debugging, when the agent crashed and you have the last
-    board state as a string.
-    """
+def string_to_board(pp_board: str) -> tuple:
     string = pp_board
     string = string.replace('=', '')
     string = string.replace('|', '')
@@ -96,43 +145,17 @@ def string_to_board(pp_board: str) -> np.ndarray:
     # split string by lines
     split = string.split('\n')
     string = split[2:8]
-    board = np.full((6, 7), NO_PLAYER, dtype=BoardPiece)
+    board1, board2 = '', ''
+    for j in range(6, -1, -1):
+        board1 += '0'
+        board2 += '0'
+        for i in range(0, 6):
+            board1 += ['0', '1'][string[i][j] == PLAYER1_PRINT]
+            board2 += ['0', '1'][string[i][j] == PLAYER2_PRINT]
+    board1 = format(int(board1, 2), '049b')
+    board2 = format(int(board2, 2), '049b')
+    return int(board1, 2), int(board2, 2)
 
-    # Go through string backwards because it's flipped
-    for i in range(5, -1, -1):
-        count = 0
-        for j in string[i]:
-            if j == PLAYER1_PRINT:
-                board[5 - i][count] = PLAYER1
-            elif j == PLAYER2_PRINT:
-                board[5 - i][count] = PLAYER2
-            count += 1
-
-    return board
-
-
-def apply_player_action(board: np.ndarray, action: PlayerAction, player: BoardPiece) -> np.ndarray:
-    """
-    Sets board[i, action] = player, where i is the lowest open row. Raises a ValueError
-    if action is not a legal move. If it is a legal move, the modified version of the
-    board is returned and the original board should remain unchanged (i.e., either set
-    back or copied beforehand).
-    """
-
-    # create a real copy so board does not get changed
-    new_board = copy.deepcopy(board)
-    piece_placed = 0
-    if 0 <= action <= 6:
-        if board[5][action] == NO_PLAYER:
-            for i in range(6):
-                if board[i][action] == NO_PLAYER and piece_placed == 0:
-                    new_board[i][action] = player
-                    piece_placed = 1
-        else:
-            raise ValueError('This column is full you cannot play here!')
-    else:
-        raise ValueError('Must be a number from 0 to 6')
-    return new_board
 
 
 """
@@ -140,57 +163,70 @@ Was supposed to be run with numba for faster calculations, but had problems with
 """
 
 
-def connected_four(board: np.ndarray, player: BoardPiece) -> bool:
+def possible_actions(board: tuple) -> list:
+    """Generates a list of all possible actions that could be played on the given board
+
+    Parameters
+    ----------
+    board : np.ndarray
+        Current board
+
+    Returns
+    -------
+    list
+        A list of all columns of the board that have a BoardPiece representing NO_PLAYER
     """
-    Returns True if there are four adjacent pieces equal to `player` arranged
-    in either a horizontal, vertical, or diagonal line. Returns False otherwise.
+    possible_actions_list = []
+    mask = board[0] | board[1]
+    column0full = 0b0000000_0000000_0000000_0000000_0000000_0000000_0100000
+    column1full = 0b0000000_0000000_0000000_0000000_0000000_0100000_0000000
+    column2full = 0b0000000_0000000_0000000_0000000_0100000_0000000_0000000
+    column3full = 0b0000000_0000000_0000000_0100000_0000000_0000000_0000000
+    column4full = 0b0000000_0000000_0100000_0000000_0000000_0000000_0000000
+    column5full = 0b0000000_0100000_0000000_0000000_0000000_0000000_0000000
+    column6full = 0b0100000_0000000_0000000_0000000_0000000_0000000_0000000
+    columncheck = [column0full, column1full, column2full, column3full, column4full, column5full, column6full]
+    for col, value in enumerate(columncheck):
+        if mask & value == 0:
+            possible_actions_list.append(col)
 
+    return possible_actions_list
+
+
+def possible_boards(board: tuple, player: BoardPiece) -> list:
+    """Generates a list of all possible boards, that can exist one action deep on a given board from a given player
+
+    Parameters
+    ----------
+    board : np.ndarray
+        Current board
+    player : BoardPiece
+        Player whose turn it is
+
+    Returns
+    -------
+    list
+        A list of all possible boards after applying all possible actions on the board from the player
     """
-
-    # rows = 6 columns = 7
-
-    # check horizontally for win
-    for c in range(4):
-        for r in range(6):
-            if board[r][c] == player and board[r][c+1] == player \
-                    and board[r][c+2] == player and board[r][c+3] == player:
-                return True
-
-    # check vertically for win
-    for c in range(7):
-        for r in range(3):
-            if board[r][c] == player and board[r+1][c] == player \
-                    and board[r+2][c] == player and board[r+3][c] == player:
-                return True
-
-    # check for diagonals going right
-    for c in range(4):
-        for r in range(3):
-            if board[r][c] == player and board[r+1][c+1] == player \
-                    and board[r+2][c+2] == player and board[r+3][c+3] == player:
-                return True
-
-    # check for diagonals going left
-    for c in range(4):
-        for r in range(3, 6):
-            if board[r][c] == player and board[r-1][c+1] == player \
-                    and board[r-2][c+2] == player and board[r-3][c+3] == player:
-                return True
-    return False
+    possible_boards_list = []
+    for x in possible_actions(board):
+        possible_boards_list.append(apply_player_action(board, x, player))
+    return possible_boards_list
 
 
-def check_end_state(board: np.ndarray, player: BoardPiece) -> GameState:
-    """
-    Returns the current game state for the current `player`, i.e. has their last
-    action won (GameState.IS_WIN) or drawn (GameState.IS_DRAW) the game,
-    or is play still on-going (GameState.STILL_PLAYING)?
-    """
+def check_end_state(board, player):
+    board1 = board[0]
+    board2 = board[1]
+    drawnboard = 0b0111111_0111111_0111111_0111111_0111111_0111111_0111111
+    mask = board1 | board2
+
     if connected_four(board, player):
         return GameState.IS_WIN
-    elif(board[5][0] != NO_PLAYER and board[5][1] != NO_PLAYER and
-         board[5][2] != NO_PLAYER and board[5][3] != NO_PLAYER and
-         board[5][4] != NO_PLAYER and board[5][5] != NO_PLAYER and
-         board[5][6] != NO_PLAYER):
+    elif mask == drawnboard:
         return GameState.IS_DRAW
     else:
         return GameState.STILL_PLAYING
+
+
+
+
